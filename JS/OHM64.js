@@ -16,11 +16,11 @@ this.MIDI_FUNCTION_MAP;
 this.midiFunction;
 
 /**
- * An boolean array containing the Button states (on or off)
+ * An array containing the button states
  * 
  * @var array
  */
-this.OHMStates;
+this.buttonStates;
 
 /**
  * The interface that handles sending messages to the Ohm64
@@ -40,7 +40,7 @@ this.init = function () {
     };
 
     this.setMidiFunction('toggle');
-    this.OHMStates = [];
+    this.buttonStates = [];
     this.midiInterface = this.patcher.getnamed('toOhm64');
 };
 
@@ -51,8 +51,8 @@ this.init = function () {
  * @param interger value The state of the button
  **/
 this.button = function (buttonId, state) {
-    if (this.OHMStates[buttonId] === undefined) {
-        this.OHMStates[buttonId] = {};
+    if (this.buttonStates[buttonId] === undefined) {
+        this.buttonStates[buttonId] = {};
     }
     
     this.midiFunction(buttonId, state);
@@ -71,7 +71,7 @@ this.toggleState = function (buttonId, isKeyDown) {
     }
 
     // Toggle the state
-    state = (this.OHMStates[buttonId].state > 0) ? 0 : 1;
+    state = (this.buttonStates[buttonId].state > 0) ? 0 : 1;
 
     this.setButtonState(buttonId, state);
 };
@@ -100,7 +100,7 @@ this.blinkState = function (buttonId, isKeyDown) {
     }
 
     // blink the state
-    var button = this.OHMStates[buttonId];
+    var button = this.buttonStates[buttonId];
     if (!button.isBlinking) {
         button.blinkTask = new Task(this.toggleState, this, buttonId, true);
         button.blinkTask.interval = 100;
@@ -119,7 +119,7 @@ this.blinkState = function (buttonId, isKeyDown) {
  * @param boolean state The state of the button
  */
 this.setButtonState = function (buttonId, state) {	
-    this.OHMStates[buttonId].state = state;
+    this.buttonStates[buttonId].state = state;
     this.sendMessage(144, buttonId, state);	
 };
 
