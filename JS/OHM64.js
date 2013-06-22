@@ -1,7 +1,6 @@
 outlets = 0;
 inlets = 1;
 
-    
 /**
  * A mapping of the midi function
  * 
@@ -36,7 +35,8 @@ this.midiInterface;
 this.init = function () {
     this.MIDI_FUNCTION_MAP = {
         toggle: this.toggleState,
-        trigger: this.triggerState
+        trigger: this.triggerState,
+        blink: this.blinkState
     };
 
     this.setMidiFunction('toggle');
@@ -51,6 +51,10 @@ this.init = function () {
  * @param interger value The state of the button
  **/
 this.button = function (buttonId, state) {
+    if (this.OHMStates[buttonId] === undefined) {
+        this.OHMStates[buttonId] = {};
+    }
+    
     this.midiFunction(buttonId, state);
 };
 
@@ -58,7 +62,7 @@ this.button = function (buttonId, state) {
  * Toggle the pressed state of a button
  * 
  * @param integer buttonId The ID of the button
- * @param boolean isKeyDown Only trigger state change on button down events
+ * @param boolean isKeyDown Only trigger state change on button down events (default: true)
  */
 this.toggleState = function (buttonId, isKeyDown) {	
     // Only toggle state on button down
@@ -67,9 +71,9 @@ this.toggleState = function (buttonId, isKeyDown) {
     }
 
     // Toggle the state
-    state = (this.OHMStates[buttonId] > 0) ? 0 : 1;
+    state = (this.OHMStates[buttonId].state > 0) ? 0 : 1;
 
-    setButtonState(buttonId, state);
+    this.setButtonState(buttonId, state);
 };
 
 /**
@@ -84,13 +88,38 @@ this.triggerState = function (buttonId, value) {
 };
 
 /**
+ * Blink the pressed state of a button
+ * 
+ * @param integer buttonId The ID of the button
+ * @param boolean isKeyDown Only trigger state change on button down events
+ */
+this.blinkState = function (buttonId, isKeyDown) {	
+    // Only toggle state on button down
+    if (!isKeyDown) {
+        return;
+    }
+
+    // blink the state
+    var button = this.OHMStates[buttonId];
+    if (!button.isBlinking) {
+        button.blinkTask = new Task(this.toggleState, this, buttonId, true);
+        button.blinkTask.interval = 100;
+        button.blinkTask.repeat();
+        button.isBlinking = true;
+    } else {
+        button.blinkTask.cancel(); 
+        this.triggerState(buttonId, 0);
+    }
+};
+
+/**
  * Set the buttons state (on or off)
  * 
  * @param integer buttonId The button ID
  * @param boolean state The state of the button
  */
 this.setButtonState = function (buttonId, state) {	
-    this.OHMStates[buttonId] = state;
+    this.OHMStates[buttonId].state = state;
     this.sendMessage(144, buttonId, state);	
 };
 

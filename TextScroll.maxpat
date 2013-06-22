@@ -7,7 +7,7 @@
 			"revision" : 1
 		}
 ,
-		"rect" : [ -131.0, 427.0, 1395.0, 599.0 ],
+		"rect" : [ -31992.0, -31950.0, 1395.0, 599.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -51,7 +51,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 735.0, 740.0, 115.0, 115.0 ],
+					"patching_rect" : [ 735.0, 740.0, 119.0, 115.0 ],
 					"text" : "0 0 0 0 0 0 0 0 0 0 0 0 255 0 0 0 0 0 0 0 0 0 255 0 0 0 0 0 255 0 255 255 0 0 0 0 255 0 255 0 0 0 0 0 255 0 255 0 0 0 0 0 255 0 255 0 0 0 0 0 255 0 255 255"
 				}
 
@@ -371,7 +371,7 @@
 							"revision" : 1
 						}
 ,
-						"rect" : [ 9.0, 51.0, 1249.0, 269.0 ],
+						"rect" : [ -1017.0, -321.0, 1249.0, 269.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -392,6 +392,33 @@
 						"tags" : "",
 						"visible" : 1,
 						"boxes" : [ 							{
+								"box" : 								{
+									"id" : "obj-5",
+									"maxclass" : "button",
+									"numinlets" : 1,
+									"numoutlets" : 1,
+									"outlettype" : [ "bang" ],
+									"patching_rect" : [ 125.0, 103.0, 20.0, 20.0 ]
+								}
+
+							}
+, 							{
+								"box" : 								{
+									"fontname" : "Arial",
+									"fontsize" : 12.0,
+									"id" : "obj-3",
+									"linecount" : 2,
+									"maxclass" : "message",
+									"numinlets" : 2,
+									"numoutlets" : 1,
+									"outlettype" : [ "" ],
+									"patching_rect" : [ 235.0, 198.0, 50.0, 32.0 ],
+									"presentation_rect" : [ 240.0, 201.0, 0.0, 0.0 ],
+									"text" : "button 24 0"
+								}
+
+							}
+, 							{
 								"box" : 								{
 									"fontname" : "Arial",
 									"fontsize" : 12.0,
@@ -480,7 +507,7 @@
 									"fontname" : "Arial",
 									"fontsize" : 12.0,
 									"id" : "obj-20",
-									"items" : [ "trigger", ",", "toggle" ],
+									"items" : [ "trigger", ",", "toggle", ",", "blink" ],
 									"maxclass" : "umenu",
 									"numinlets" : 1,
 									"numoutlets" : 3,
@@ -498,11 +525,11 @@
 									"fontsize" : 12.0,
 									"id" : "obj-17",
 									"maxclass" : "newobj",
-									"numinlets" : 2,
+									"numinlets" : 3,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 181.0, 154.0, 56.0, 20.0 ],
-									"text" : "pack 0 0"
+									"patching_rect" : [ 157.5, 154.0, 93.0, 20.0 ],
+									"text" : "pack button 0 0"
 								}
 
 							}
@@ -547,7 +574,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 268.0, 154.0, 50.0, 18.0 ],
-									"text" : "37"
+									"text" : "24"
 								}
 
 							}
@@ -572,6 +599,15 @@
 									"disabled" : 0,
 									"hidden" : 0,
 									"source" : [ "obj-1", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-3", 1 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"source" : [ "obj-17", 0 ]
 								}
 
 							}
@@ -622,7 +658,7 @@
 							}
 , 							{
 								"patchline" : 								{
-									"destination" : [ "obj-17", 1 ],
+									"destination" : [ "obj-17", 2 ],
 									"disabled" : 0,
 									"hidden" : 0,
 									"source" : [ "obj-48", 1 ]
@@ -631,7 +667,7 @@
 							}
 , 							{
 								"patchline" : 								{
-									"destination" : [ "obj-17", 0 ],
+									"destination" : [ "obj-17", 1 ],
 									"disabled" : 0,
 									"hidden" : 0,
 									"source" : [ "obj-48", 0 ]
@@ -649,6 +685,15 @@
 							}
 , 							{
 								"patchline" : 								{
+									"destination" : [ "obj-5", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"source" : [ "obj-48", 0 ]
+								}
+
+							}
+, 							{
+								"patchline" : 								{
 									"destination" : [ "obj-50", 1 ],
 									"disabled" : 0,
 									"hidden" : 0,
@@ -656,10 +701,19 @@
 								}
 
 							}
+, 							{
+								"patchline" : 								{
+									"destination" : [ "obj-17", 0 ],
+									"disabled" : 0,
+									"hidden" : 0,
+									"source" : [ "obj-5", 0 ]
+								}
+
+							}
  ],
 						"dependency_cache" : [ 							{
 								"name" : "OHM64.js",
-								"bootpath" : "\\Users\\ZXY8\\Documents\\MaxMSP\\JS",
+								"bootpath" : "\\Users\\ZXY8\\Documents\\GitHub\\MaxMsp\\JS",
 								"type" : "TEXT",
 								"implicit" : 1
 							}
@@ -668,16 +722,16 @@
 ,
 					"patching_rect" : [ 33.5, 29.5, 93.0, 20.0 ],
 					"saved_object_attributes" : 					{
+						"default_fontsize" : 12.0,
 						"description" : "",
 						"fontname" : "Arial",
 						"fontface" : 0,
+						"tags" : "",
 						"default_fontface" : 0,
 						"fontsize" : 12.0,
-						"tags" : "",
 						"globalpatchername" : "",
 						"digest" : "",
-						"default_fontname" : "Arial",
-						"default_fontsize" : 12.0
+						"default_fontname" : "Arial"
 					}
 ,
 					"text" : "patcher Ohm64"
@@ -872,8 +926,8 @@
  ],
 		"dependency_cache" : [ 			{
 				"name" : "OHM64.js",
-				"bootpath" : "\\Users\\ZXY8\\Documents\\MaxMSP\\JS",
-				"patcherrelativepath" : "..\\MaxMSP\\JS",
+				"bootpath" : "\\Users\\ZXY8\\Documents\\GitHub\\MaxMsp\\JS",
+				"patcherrelativepath" : "..\\MaxMsp\\JS",
 				"type" : "TEXT",
 				"implicit" : 1
 			}
