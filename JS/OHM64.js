@@ -51,10 +51,6 @@ this.init = function () {
  * @param interger value The state of the button
  **/
 this.button = function (buttonId, state) {
-    if (this.buttonStates[buttonId] === undefined) {
-        this.buttonStates[buttonId] = {};
-    }
-    
     this.midiFunction(buttonId, state);
 };
 
@@ -71,7 +67,7 @@ this.toggleState = function (buttonId, isKeyDown) {
     }
 
     // Toggle the state
-    state = (this.buttonStates[buttonId].state > 0) ? 0 : 1;
+    state = (this.getButton(buttonId).state > 0) ? 0 : 1;
 
     this.setButtonState(buttonId, state);
 };
@@ -100,7 +96,7 @@ this.blinkState = function (buttonId, isKeyDown) {
     }
 
     // blink the state
-    var button = this.buttonStates[buttonId];
+    var button = this.getButton(buttonId);
     if (!button.isBlinking) {
         button.blinkTask = new Task(this.toggleState, this, buttonId, true);
         button.blinkTask.interval = 100;
@@ -119,9 +115,24 @@ this.blinkState = function (buttonId, isKeyDown) {
  * @param boolean state The state of the button
  */
 this.setButtonState = function (buttonId, state) {	
-    this.buttonStates[buttonId].state = state;
+    this.getButton(buttonId).state = state;
     this.sendMessage(144, buttonId, state);	
 };
+
+/**
+ * Retrieve a button object
+ * 
+ * @param interger buttonId The button ID
+ * 
+ * @returns object
+ */
+this.getButton = function (buttonId) {
+    if (this.buttonStates[buttonId] === undefined) {
+        this.buttonStates[buttonId] = {};
+    };
+    
+    return this.buttonStates[buttonId];
+}
 
 /**
  * Set the MIDI function
@@ -146,44 +157,81 @@ this.sendMessage = function (eventType, note, value) {
 };
 
 /**
- * The list event
+ * The list event. Sets all LEDs
  */
 this.list = function () {
-    post('list');
-    var matrix = getMaskedMatrix(arguments);
-    var sysexCommand = '';
-
-    var sysexValue = 0;
-
-    for (var col = 0; col < 11; col++) {
-            sysexValue += Math.pow(2, col) * matrix[col];
+    // Validate the input
+    if (arguments.length !== 64) {
+        post('Invalid list. See help for the list reference');
+        return;
     }
+        
+    // Update the button states
+    for(var i=0; i < arguments.length; i++) {
+        this.getButton(i).state = Boolean(arguments[i]);
+    }
+    
+    this.sync();
 };
 
 /**
- * 
+ * Sync the states of the buttons on the Ohm64. This uses a sysex command
+ * to update all the buttons at once. This is done using bits to determine
+ * which should be on or off. For the full documentation see 
+ * http://wiki.lividinstruments.com/wiki/Ohm64
  */
-this.getMaskedMatrix = function (values) {
-    var maskedMatrix = [];
-
-    for(var i = 0; i < 16; i++) {
-            var maskIndex = Ohm64_mask[i];
-            maskedMatrix[i] = Boolean(values[maskIndex]);
+this.sync = function () {
+    var columnChecksums = [];
+    
+    for (var i=0; i < this.OHM64_INDEX_MASK.length; i++) {
+        var checksum = this.getColumnChecksum(i);
+        columnChecksums.concat(checksum);
     }
+    
+    var sysexCommand = '240 0 1 97 2 4 ' + columnChecksums.join(' ') + ' 247';
+    post(sysexCommand);
+//    this.midiInterface.message(sysexCommand);
+};
 
-    return maskedMatrix;
+this.getColumnChecksum = function (column) {
+    var indexMask = this.OHM64_INDEX_MASK[column];
+    var LL = 0;
+    var HH = 0;
+    var exponent = 0;
+    var columnValue = LL;
+    
+    // There are 14 rows per column
+    for (var i=0; indexMask.length; i++) {
+        var index = indexMask[i];
+        
+        if(index) {
+            var button = this.buttonStates[index];
+            columnValue += Math.pow(2, exponent) * button.state;
+        }
+        
+        // Swap the column value after the 7th row and reset the exponent
+        if (i === 7) {
+            columnValue = HH;
+            exponent = 0;
+        }
+    }
+    
+    return {LL: LL, HH: HH};
 };
 
 /**
+ * This array hold the order in which the rows and columns need
+ * be added to get the correct LL HH values
  * 
+ * @var array
  */
-this.Ohm64_mask = [
-    0,  48, 33, 18, 3,  51, 36, 21, 6,  54, 39,
-    8,  56, 41, 26, 11, 59, 44, 29, 14, 62, 47,
-    16, 1,  49, 36, 19, 4,  52, 37, 22, 7,  55,
-    24, 9,  57, 46, 27, 12, 60, 45, 30, 15, 63,
-    32, 17, 2,  54, 35, 20, 5,  53, 38, 23, null,
-    40, 25, 10, 62, 43, 28, 13, 61, 46, 31, null
+this.OHM64_INDEX_MASK = [
+    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, null, 60],
+    [1, 7, 13, 19, 25, 31, 37, 43, 49, 55, null, 61],
+    [2, 8, 14, 20, 26, 32, 38, 44, 50, 56, null, 62],
+    [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, null, 63],
+    [4, 10, 16, 22, 28, 34, 40, 46, 52, 58, null],
+    [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, null]
 ];
 
 // Initialize the Ohm64
