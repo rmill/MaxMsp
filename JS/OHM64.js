@@ -181,16 +181,16 @@ this.list = function () {
  * http://wiki.lividinstruments.com/wiki/Ohm64
  */
 this.sync = function () {
-    var columnChecksums = [];
-    
+    var sysexCommand = [240, 0, 1, 97, 2, 4]; 
     for (var i=0; i < this.OHM64_INDEX_MASK.length; i++) {
         var checksum = this.getColumnChecksum(i);
-        columnChecksums.concat(checksum);
+        sysexCommand.push(checksum.LL, checksum.HH);
     }
     
-    var sysexCommand = '240 0 1 97 2 4 ' + columnChecksums.join(' ') + ' 247';
+    sysexCommand.push(247);
+    
     post(sysexCommand);
-//    this.midiInterface.message(sysexCommand);
+    this.midiInterface.message(sysexCommand);
 };
 
 this.getColumnChecksum = function (column) {
@@ -198,21 +198,27 @@ this.getColumnChecksum = function (column) {
     var LL = 0;
     var HH = 0;
     var exponent = 0;
-    var columnValue = LL;
     
     // There are 14 rows per column
-    for (var i=0; indexMask.length; i++) {
+    for (var i=0; i < indexMask.length; i++) {
         var index = indexMask[i];
-        
-        if(index) {
+
+        if(index !== null) {
             var button = this.buttonStates[index];
-            columnValue += Math.pow(2, exponent) * button.state;
+            var columnValue = Math.pow(2, exponent) * !button.state;
+
+            if (i < 7) {
+                LL += columnValue;
+            } else {
+                HH += columnValue;
+            }
         }
         
         // Swap the column value after the 7th row and reset the exponent
-        if (i === 7) {
-            columnValue = HH;
+        if (i === 6) {
             exponent = 0;
+        } else {
+            exponent++;
         }
     }
     
