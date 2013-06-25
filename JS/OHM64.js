@@ -40,8 +40,8 @@ this.init = function () {
     };
 
     this.setMidiFunction('toggle');
-    this.buttonStates = [];
     this.midiInterface = this.patcher.getnamed('toOhm64');
+    this.clear();
 };
 
 /**
@@ -116,7 +116,7 @@ this.blinkState = function (buttonId, isKeyDown) {
  */
 this.setButtonState = function (buttonId, state) {	
     this.getButton(buttonId).state = state;
-    this.sendMessage(144, buttonId, state);	
+    this.midiInterface.message([144, buttonId, state]);
 };
 
 /**
@@ -132,7 +132,7 @@ this.getButton = function (buttonId) {
     };
     
     return this.buttonStates[buttonId];
-}
+};
 
 /**
  * Set the MIDI function
@@ -145,15 +145,6 @@ this.setMidiFunction = function (functionName) {
     }else {
         post(functionName + ' is not a valid midi function');
     }
-};
-
-/**
- * Send a message to the Ohm64
- * 
- * @param string eventType The event type
- */
-this.sendMessage = function (eventType, note, value) {
-    this.midiInterface.message(eventType, note, value);	
 };
 
 /**
@@ -189,7 +180,6 @@ this.sync = function () {
     
     sysexCommand.push(247);
     
-    post(sysexCommand);
     this.midiInterface.message(sysexCommand);
 };
 
@@ -202,19 +192,16 @@ this.getColumnChecksum = function (column) {
     // There are 14 rows per column
     for (var i=0; i < indexMask.length; i++) {
         var index = indexMask[i];
+        var isSet = (index === null) ? false : this.getButton(index).state;
+        var columnValue = Math.pow(2, exponent) * !isSet;
 
-        if(index !== null) {
-            var button = this.buttonStates[index];
-            var columnValue = Math.pow(2, exponent) * !button.state;
-
-            if (i < 7) {
-                LL += columnValue;
-            } else {
-                HH += columnValue;
-            }
+        if (i < 7) {
+            LL += columnValue;
+        } else {
+            HH += columnValue;
         }
         
-        // Swap the column value after the 7th row and reset the exponent
+        // Reset the exponent after the 7th value
         if (i === 6) {
             exponent = 0;
         } else {
@@ -226,18 +213,34 @@ this.getColumnChecksum = function (column) {
 };
 
 /**
+ * Trigger a factory reset on the Ohm64
+ */
+this.factoryReset = function () {
+    var reset = [240, 0, 1, 97, 2, 6, 247];
+    this.midiInterface.message(reset);
+};
+
+/**
+ *  Cleart all the buttons 
+ */
+this.clear = function () {
+    this.buttonStates = [];
+    this.sync();
+};
+
+/**
  * This array hold the order in which the rows and columns need
  * be added to get the correct LL HH values
  * 
  * @var array
  */
 this.OHM64_INDEX_MASK = [
-    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, null, 60],
-    [1, 7, 13, 19, 25, 31, 37, 43, 49, 55, null, 61],
-    [2, 8, 14, 20, 26, 32, 38, 44, 50, 56, null, 62],
-    [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, null, 63],
-    [4, 10, 16, 22, 28, 34, 40, 46, 52, 58, null],
-    [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, null]
+    [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, null, 60, null, null],
+    [1, 7, 13, 19, 25, 31, 37, 43, 49, 55, null, 61, null, null],
+    [2, 8, 14, 20, 26, 32, 38, 44, 50, 56, null, 62, null, null],
+    [3, 9, 15, 21, 27, 33, 39, 45, 51, 57, null, 63, null, null],
+    [4, 10, 16, 22, 28, 34, 40, 46, 52, 58, null, null, null, null],
+    [5, 11, 17, 23, 29, 35, 41, 47, 53, 59, null, null, null, null]
 ];
 
 // Initialize the Ohm64
